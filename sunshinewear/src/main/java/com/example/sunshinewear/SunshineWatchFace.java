@@ -29,11 +29,24 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
 import android.widget.Toast;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataEvent;
+import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.Wearable;
 
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
@@ -44,9 +57,16 @@ import java.util.concurrent.TimeUnit;
  * Digital watch face with seconds. In ambient mode, the seconds aren't displayed. On devices with
  * low-bit ambient mode, the text is drawn without anti-aliasing in ambient mode.
  */
-public class SunshineWatchFace extends CanvasWatchFaceService {
+public class SunshineWatchFace extends CanvasWatchFaceService implements
+        DataApi.DataListener,
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
     private static final Typeface NORMAL_TYPEFACE =
             Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL);
+
+    private GoogleApiClient mGoogleApiClient;
+
+    private static String LOG_TAG = SunshineWatchFace.class.getSimpleName();
 
     /**
      * Update rate in milliseconds for interactive mode. We update once a second since seconds are
@@ -62,6 +82,46 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
     @Override
     public Engine onCreateEngine() {
         return new Engine();
+    }
+
+    @Override
+    public void onCreate() {
+
+        super.onCreate();
+    }
+
+    @Override
+    public void onDataChanged(DataEventBuffer dataEventBuffer) {
+        Log.d(LOG_TAG, "onDataChanged");
+        for (DataEvent event : dataEventBuffer) {
+            if (event.getType() == DataEvent.TYPE_CHANGED) {
+                // DataItem changed
+                DataItem item = event.getDataItem();
+                Log.d(LOG_TAG, "event received");
+                if (item.getUri().getPath().compareTo("/count") == 0) {
+                    DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
+//                    updateCount(dataMap.getInt(COUNT_KEY));
+                }
+            } else if (event.getType() == DataEvent.TYPE_DELETED) {
+                // DataItem deleted
+            }
+        }
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        Log.d(LOG_TAG, "onConnected");
+        Wearable.DataApi.addListener(mGoogleApiClient, this);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.d(LOG_TAG, "onConnectionSuspended");
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.d(LOG_TAG, "onConnectionFailed");
     }
 
     private static class EngineHandler extends Handler {
@@ -110,7 +170,14 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         @Override
         public void onCreate(SurfaceHolder holder) {
             super.onCreate(holder);
+            Log.d(LOG_TAG, "onCreate");
+            mGoogleApiClient = new GoogleApiClient.Builder(getApplicationContext())
+                    .addApi(Wearable.API)
+                    .addConnectionCallbacks(SunshineWatchFace.this)
+                    .addOnConnectionFailedListener(SunshineWatchFace.this)
+                    .build();
 
+            mGoogleApiClient.connect();
             setWatchFaceStyle(new WatchFaceStyle.Builder(SunshineWatchFace.this)
                     .setCardPeekMode(WatchFaceStyle.PEEK_MODE_VARIABLE)
                     .setBackgroundVisibility(WatchFaceStyle.BACKGROUND_VISIBILITY_INTERRUPTIVE)
@@ -131,7 +198,10 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
         @Override
         public void onDestroy() {
+            Log.d(LOG_TAG, "onDestroy");
             mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
+            Wearable.DataApi.removeListener(mGoogleApiClient, SunshineWatchFace.this);
+            mGoogleApiClient.disconnect();
             super.onDestroy();
         }
 

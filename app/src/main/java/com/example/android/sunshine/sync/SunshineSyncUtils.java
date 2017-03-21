@@ -38,8 +38,8 @@ public class SunshineSyncUtils {
      * Interval at which to sync with the weather. Use TimeUnit for convenience, rather than
      * writing out a bunch of multiplication ourselves and risk making a silly mistake.
      */
-    private static final int SYNC_INTERVAL_HOURS = 3;
-    private static final int SYNC_INTERVAL_SECONDS = (int) TimeUnit.HOURS.toSeconds(SYNC_INTERVAL_HOURS);
+//    private static final int SYNC_INTERVAL_HOURS = 3;
+    private static final int SYNC_INTERVAL_SECONDS = 30;//(int) TimeUnit.HOURS.toSeconds(SYNC_INTERVAL_HOURS);
     private static final int SYNC_FLEXTIME_SECONDS = SYNC_INTERVAL_SECONDS / 3;
 
     private static boolean sInitialized;
