@@ -68,6 +68,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService implements
 
     private static String LOG_TAG = SunshineWatchFace.class.getSimpleName();
 
+    private String mMinMax;
+    private int mConditionId;
+
     /**
      * Update rate in milliseconds for interactive mode. We update once a second since seconds are
      * displayed in interactive mode.
@@ -98,9 +101,11 @@ public class SunshineWatchFace extends CanvasWatchFaceService implements
                 // DataItem changed
                 DataItem item = event.getDataItem();
                 Log.d(LOG_TAG, "event received");
-                if (item.getUri().getPath().compareTo("/count") == 0) {
+                if (item.getUri().getPath().compareTo("/weather") == 0) {
                     DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
-//                    updateCount(dataMap.getInt(COUNT_KEY));
+                    mMinMax = dataMap.getString("MIN_MAX");
+//                    mMax = dataMap.getFloat("MAX");
+                    mConditionId = dataMap.getInt("CONDITION");
                 }
             } else if (event.getType() == DataEvent.TYPE_DELETED) {
                 // DataItem deleted
@@ -182,7 +187,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService implements
                     .setCardPeekMode(WatchFaceStyle.PEEK_MODE_VARIABLE)
                     .setBackgroundVisibility(WatchFaceStyle.BACKGROUND_VISIBILITY_INTERRUPTIVE)
                     .setShowSystemUiTime(false)
-                    .setAcceptsTapEvents(true)
+                    .setAcceptsTapEvents(false)
                     .build());
             Resources resources = SunshineWatchFace.this.getResources();
             mYOffset = resources.getDimension(R.dimen.digital_y_offset);
@@ -292,29 +297,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService implements
             updateTimer();
         }
 
-        /**
-         * Captures tap event (and tap type) and toggles the background color if the user finishes
-         * a tap.
-         */
-        @Override
-        public void onTapCommand(int tapType, int x, int y, long eventTime) {
-            switch (tapType) {
-                case TAP_TYPE_TOUCH:
-                    // The user has started touching the screen.
-                    break;
-                case TAP_TYPE_TOUCH_CANCEL:
-                    // The user has started a different gesture or otherwise cancelled the tap.
-                    break;
-                case TAP_TYPE_TAP:
-                    // The user has completed the tap gesture.
-                    // TODO: Add code to handle the tap gesture.
-                    Toast.makeText(getApplicationContext(), R.string.message, Toast.LENGTH_SHORT)
-                            .show();
-                    break;
-            }
-            invalidate();
-        }
-
         @Override
         public void onDraw(Canvas canvas, Rect bounds) {
             // Draw the background.
@@ -334,6 +316,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService implements
                     : String.format("%d:%02d:%02d", mCalendar.get(Calendar.HOUR),
                     mCalendar.get(Calendar.MINUTE), mCalendar.get(Calendar.SECOND));
             canvas.drawText(text, mXOffset, mYOffset, mTextPaint);
+            if (mMinMax != null) {
+                canvas.drawText(mMinMax, mXOffset, mYOffset + 100, mTextPaint);
+            }
         }
 
         /**

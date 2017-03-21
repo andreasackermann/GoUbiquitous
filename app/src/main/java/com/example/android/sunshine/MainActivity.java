@@ -37,6 +37,7 @@ import android.widget.ProgressBar;
 import com.example.android.sunshine.data.SunshinePreferences;
 import com.example.android.sunshine.data.WeatherContract;
 import com.example.android.sunshine.sync.SunshineSyncUtils;
+import com.example.android.sunshine.utilities.SunshineWeatherUtils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -266,16 +267,18 @@ public class MainActivity extends AppCompatActivity implements
         mForecastAdapter.swapCursor(data);
         if (mPosition == RecyclerView.NO_POSITION) mPosition = 0;
         mRecyclerView.smoothScrollToPosition(mPosition);
-        if (data.getCount() != 0) showWeatherDataView();
-
-
-
-        PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/count");
-        putDataMapReq.setUrgent(); // TODO remove
-        putDataMapReq.getDataMap().putLong("1234", System.currentTimeMillis());
-        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
-        PendingResult<DataApi.DataItemResult> pendingResult =
-                Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
+        if (data.getCount() != 0) {
+            showWeatherDataView();
+            if (data.moveToFirst()) {
+                PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/weather");
+                putDataMapReq.setUrgent(); // TODO remove
+                putDataMapReq.getDataMap().putString("MIN_MAX", SunshineWeatherUtils.formatHighLows(this, data.getDouble(INDEX_WEATHER_MAX_TEMP), data.getDouble(INDEX_WEATHER_MIN_TEMP)));
+                putDataMapReq.getDataMap().putInt("CONDITION", data.getInt(INDEX_WEATHER_CONDITION_ID));
+                PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
+                PendingResult<DataApi.DataItemResult> pendingResult =
+                        Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
+            }
+        }
     }
 
     /**
