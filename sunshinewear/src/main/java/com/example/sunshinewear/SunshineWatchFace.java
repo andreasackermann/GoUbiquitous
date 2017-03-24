@@ -186,7 +186,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService implements
             }
         };
         float mXOffset;
-        float mYOffset;
 
         /**
          * Whether the display supports fewer bits for each color in ambient mode. When true, we
@@ -212,7 +211,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService implements
                     .setAcceptsTapEvents(false)
                     .build());
             Resources resources = SunshineWatchFace.this.getResources();
-            mYOffset = resources.getDimension(R.dimen.digital_y_offset);
 
             mBackgroundPaint = new Paint();
             mBackgroundPaint.setColor(resources.getColor(R.color.background));
@@ -344,10 +342,10 @@ public class SunshineWatchFace extends CanvasWatchFaceService implements
                     mCalendar.get(Calendar.MINUTE))
                     : String.format("%d:%02d:%02d", mCalendar.get(Calendar.HOUR),
                     mCalendar.get(Calendar.MINUTE), mCalendar.get(Calendar.SECOND));
-            canvas.drawText(text, bounds.width()/2, mYOffset, mTextPaint);
+            canvas.drawText(text, bounds.width()/2, bounds.height()*.33f, mTextPaint);
 
             if (mMinMax != null) {
-                canvas.drawText(mMinMax, bounds.width()/2, bounds.height() -  mYOffset, mTextPaint);
+                canvas.drawText(mMinMax, bounds.width()/2, bounds.height() *.66f, mTextPaint);
             }
         }
 

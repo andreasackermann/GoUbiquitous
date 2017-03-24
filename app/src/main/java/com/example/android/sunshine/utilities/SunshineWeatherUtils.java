@@ -82,7 +82,7 @@ public final class SunshineWeatherUtils {
         String formattedHigh = formatTemperature(context, roundedHigh);
         String formattedLow = formatTemperature(context, roundedLow);
 
-        String highLowStr = formattedHigh + " / " + formattedLow;
+        String highLowStr = formattedHigh + "/" + formattedLow;
         return highLowStr;
     }
 
