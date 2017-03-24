@@ -42,6 +42,9 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
@@ -52,6 +55,7 @@ public class MainActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
+    public static final String WEATHER_CONNECT = "/weather/connect";
     private final String TAG = MainActivity.class.getSimpleName();
 
     /*
@@ -162,6 +166,19 @@ public class MainActivity extends AppCompatActivity implements
                 .build();
 
         mGoogleApiClient.connect();
+
+        /*
+         * Let's trigger an immediate sync when the sends the connection message
+         * otherwise we would have to wait for the next scheduled sync...
+         */
+        Wearable.MessageApi.addListener(mGoogleApiClient, new MessageApi.MessageListener() {
+            @Override
+            public void onMessageReceived(MessageEvent messageEvent) {
+                if (messageEvent.getPath().startsWith(WEATHER_CONNECT)) {
+                    SunshineSyncUtils.startImmediateSync(MainActivity.this);
+                }
+            }
+        });
 
         showLoading();
 
