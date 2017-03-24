@@ -21,11 +21,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.VectorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -319,7 +322,48 @@ public class SunshineWatchFace extends CanvasWatchFaceService implements
             if (mMinMax != null) {
                 canvas.drawText(mMinMax, mXOffset, mYOffset + 100, mTextPaint);
             }
+            canvas.drawBitmap(getBitmap(mConditionId), 150, 150, null);
         }
+
+        private Bitmap getBitmap(int conditionId) {
+            int resourceId = R.drawable.art_storm; // fallback
+            if (conditionId >= 200 && conditionId <= 232) {
+                resourceId = R.drawable.art_storm;
+            } else if (conditionId >= 300 && conditionId <= 321) {
+                resourceId = R.drawable.art_light_rain;
+            } else if (conditionId >= 500 && conditionId <= 504) {
+                resourceId = R.drawable.art_rain;
+            } else if (conditionId == 511) {
+                resourceId = R.drawable.art_snow;
+            } else if (conditionId >= 520 && conditionId <= 531) {
+                resourceId = R.drawable.art_rain;
+            } else if (conditionId >= 600 && conditionId <= 622) {
+                resourceId = R.drawable.art_snow;
+            } else if (conditionId >= 701 && conditionId <= 761) {
+                resourceId = R.drawable.art_fog;
+            } else if (conditionId == 761 || conditionId == 771 || conditionId == 781) {
+                resourceId = R.drawable.art_storm;
+            } else if (conditionId == 800) {
+                resourceId = R.drawable.art_clear;
+            } else if (conditionId == 801) {
+                resourceId = R.drawable.art_light_clouds;
+            } else if (conditionId >= 802 && conditionId <= 804) {
+                resourceId = R.drawable.art_clouds;
+            } else if (conditionId >= 900 && conditionId <= 906) {
+                resourceId = R.drawable.art_storm;
+            } else if (conditionId >= 958 && conditionId <= 962) {
+                resourceId = R.drawable.art_storm;
+            } else if (conditionId >= 951 && conditionId <= 957) {
+                resourceId = R.drawable.art_clear;
+            }
+            Drawable art = getApplicationContext().getDrawable(resourceId);
+            Bitmap bitmap = Bitmap.createBitmap(art.getIntrinsicWidth()*3, art.getIntrinsicHeight()*3, Bitmap.Config.ARGB_8888);
+            Canvas canvas2 = new Canvas(bitmap);
+            art.setBounds(0, 0, canvas2.getWidth(), canvas2.getHeight());
+            art.draw(canvas2);
+            return bitmap;
+        }
+
 
         /**
          * Starts the {@link #mUpdateTimeHandler} timer if it should be running and isn't currently
